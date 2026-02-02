@@ -1,0 +1,14 @@
+[project]
+name = "pyhandgesturerecognition"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi==0.104.1",
+    "mediapipe==0.10.8",
+    "opencv-python==4.8.1.78",
+    "python-multipart==0.0.6",
+    "uvicorn==0.24.0",
+    "websockets==12.0",
+]
