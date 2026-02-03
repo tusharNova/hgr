@@ -303,7 +303,7 @@ def main():
             break
         elif key == ord('s'):
             # Save screenshot
-            filename = f'screenshot_{int(time.time())}.jpg'
+            filename = f'iimg/screenshot_{int(time.time())}.jpg'
             cv2.imwrite(filename, frame)
             print(f"Screenshot saved: {filename}")
     
