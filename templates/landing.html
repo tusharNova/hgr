@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo Smart Home - Control Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .modes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .mode-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: height 0.3s ease;
+        }
+
+        .mode-card:hover::before {
+            height: 100%;
+            opacity: 0.1;
+        }
+
+        .mode-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .mode-card:nth-child(1) .mode-icon {
+            animation-delay: 0s;
+        }
+
+        .mode-card:nth-child(2) .mode-icon {
+            animation-delay: 0.5s;
+        }
+
+        .mode-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .mode-description {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .mode-features {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .feature-item::before {
+            content: '✓';
+            color: #4ade80;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .mode-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .mode-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+            opacity: 0.8;
+            animation: fadeIn 1.5s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.5rem;
+            }
+
+            .modes-container {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .mode-card {
+                padding: 30px;
+            }
+
+            .mode-icon {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏠 Neo Smart Home</h1>
+            <p class="subtitle">Choose Your Control Method</p>
+        </header>
+
+        <div class="modes-container">
+            <!-- Gesture Control Card -->
+            <div class="mode-card" onclick="location.href='/gesture'">
+                <div class="mode-icon">🤚</div>
+                <div class="mode-title">Gesture Control</div>
+                <div class="mode-description">
+                    Control your devices with hand gestures using your camera
+                </div>
+                <div class="mode-features">
+                    <div class="feature-item">Real-time hand tracking</div>
+                    <div class="feature-item">4 controllable devices</div>
+                    <div class="feature-item">Visual feedback</div>
+                    <div class="feature-item">No touch needed</div>
+                </div>
+                <button class="mode-button">Start Gesture Control</button>
+            </div>
+
+            <!-- Voice Control Card -->
+            <div class="mode-card" onclick="location.href='/voice'">
+                <div class="mode-icon">🎤</div>
+                <div class="mode-title">Voice Assistant</div>
+                <div class="mode-description">
+                    Control devices and chat with Neo AI using voice commands
+                </div>
+                <div class="mode-features">
+                    <div class="feature-item">Voice device control</div>
+                    <div class="feature-item">Smart conversations</div>
+                    <div class="feature-item">Web search & info</div>
+                    <div class="feature-item">Hands-free operation</div>
+                </div>
+                <button class="mode-button">Talk to Neo AI</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>💡 Powered by Neo AI Assistant | Smart Home Automation System</p>
+        </footer>
+    </div>
+</body>
+</html>
