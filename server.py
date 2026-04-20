@@ -210,6 +210,32 @@ async def voice_control(request: Request):
 
 # ==================== API Routes (Original Gesture Control) ====================
 
+# Add these routes after your existing route definitions (around line 250)
+
+@app.get("/temperature", response_class=HTMLResponse)
+async def temperature_display(request: Request):
+    """Serve the temperature display page from nodeMCU/tp1.html"""
+    # Read the HTML file from nodeMCU directory
+    html_path = "nodeMCU/tp1.html"
+    try:
+        with open(html_path, 'r', encoding='utf-8') as file:
+            html_content = file.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        return HTMLResponse(content="<h1>Error: tp1.html not found</h1>", status_code=404)
+
+@app.get("/motion-detection", response_class=HTMLResponse)
+async def motion_detection(request: Request):
+    """Serve the motion detection page from nodeMCU/new_motion_code.html"""
+    # Read the HTML file from nodeMCU directory
+    html_path = "nodeMCU/new_motion_code.html"
+    try:
+        with open(html_path, 'r', encoding='utf-8') as file:
+            html_content = file.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        return HTMLResponse(content="<h1>Error: new_motion_code.html not found</h1>", status_code=404)
+
 @app.get("/api/devices")
 async def get_devices():
     """Get all devices and their states"""

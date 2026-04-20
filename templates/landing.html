@@ -157,6 +157,86 @@
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
         }
 
+        /* Sensor Monitoring Section Styles */
+        .sensor-modes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            color: white;
+            margin: 50px 0 20px 0;
+            font-size: 1.8rem;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        .sensor-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .sensor-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .sensor-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .sensor-description {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .sensor-button {
+            display: inline-block;
+            padding: 12px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .sensor-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
         /* ESP32-CAM IP Input Modal */
         .modal {
             display: none;
@@ -267,16 +347,16 @@
                 font-size: 2.5rem;
             }
 
-            .modes-container {
+            .modes-container, .sensor-modes-container {
                 grid-template-columns: 1fr;
                 gap: 30px;
             }
 
-            .mode-card {
+            .mode-card, .sensor-card {
                 padding: 30px;
             }
 
-            .mode-icon {
+            .mode-icon, .sensor-icon {
                 font-size: 4rem;
             }
         }
@@ -289,6 +369,7 @@
             <p class="subtitle">Choose Your Control Method</p>
         </header>
 
+        <!-- Main Control Methods -->
         <div class="modes-container">
             <!-- Gesture Control with Laptop Camera Card -->
             <div class="mode-card" onclick="location.href='/gesture'">
@@ -336,6 +417,42 @@
                     <div class="feature-item">Hands-free operation</div>
                 </div>
                 <button class="mode-button">Talk to Neo AI</button>
+            </div>
+        </div>
+
+        <!-- Sensor Monitoring Section -->
+        <div class="section-title">📡 Sensor Monitoring</div>
+        <div class="sensor-modes-container">
+            <!-- Temperature Display Card -->
+            <div class="sensor-card" onclick="location.href='/temperature'">
+                <div class="sensor-icon">🌡️</div>
+                <div class="sensor-title">Temperature Monitor</div>
+                <div class="sensor-description">
+                    Real-time temperature monitoring from your NodeMCU sensors
+                </div>
+                <div class="mode-features">
+                    <div class="feature-item">Live temperature readings</div>
+                    <div class="feature-item">Historical data view</div>
+                    <div class="feature-item">Temperature alerts</div>
+                    <div class="feature-item">Celsius/Fahrenheit display</div>
+                </div>
+                <button class="sensor-button">View Temperature</button>
+            </div>
+
+            <!-- Motion Detection Card -->
+            <div class="sensor-card" onclick="location.href='/motion-detection'">
+                <div class="sensor-icon">🚶</div>
+                <div class="sensor-title">Motion Detection</div>
+                <div class="sensor-description">
+                    Monitor motion events and security alerts from your NodeMCU
+                </div>
+                <div class="mode-features">
+                    <div class="feature-item">Real-time motion tracking</div>
+                    <div class="feature-item">Security notifications</div>
+                    <div class="feature-item">Event history log</div>
+                    <div class="feature-item">Motion zone configuration</div>
+                </div>
+                <button class="sensor-button">View Motion Events</button>
             </div>
         </div>
 
