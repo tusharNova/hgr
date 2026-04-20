@@ -99,6 +99,10 @@
             animation-delay: 0.5s;
         }
 
+        .mode-card:nth-child(3) .mode-icon {
+            animation-delay: 1s;
+        }
+
         .mode-title {
             font-size: 2rem;
             font-weight: bold;
@@ -151,6 +155,63 @@
         .mode-button:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        /* ESP32-CAM IP Input Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .modal-content button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal-btn-confirm {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal-btn-cancel {
+            background: #ef4444;
+            color: white;
         }
 
         footer {
@@ -229,20 +290,36 @@
         </header>
 
         <div class="modes-container">
-            <!-- Gesture Control Card -->
+            <!-- Gesture Control with Laptop Camera Card -->
             <div class="mode-card" onclick="location.href='/gesture'">
-                <div class="mode-icon">🤚</div>
-                <div class="mode-title">Gesture Control</div>
+                <div class="mode-icon">💻🤚</div>
+                <div class="mode-title">Laptop Camera</div>
                 <div class="mode-description">
-                    Control your devices with hand gestures using your camera
+                    Control your devices with hand gestures using your laptop's built-in camera
                 </div>
                 <div class="mode-features">
                     <div class="feature-item">Real-time hand tracking</div>
                     <div class="feature-item">4 controllable devices</div>
                     <div class="feature-item">Visual feedback</div>
-                    <div class="feature-item">No touch needed</div>
+                    <div class="feature-item">No extra hardware needed</div>
                 </div>
                 <button class="mode-button">Start Gesture Control</button>
+            </div>
+
+            <!-- ESP32-CAM Gesture Control Card -->
+            <div class="mode-card" id="esp32Card">
+                <div class="mode-icon">📷🤚</div>
+                <div class="mode-title">ESP32-CAM</div>
+                <div class="mode-description">
+                    Control devices using ESP32-CAM IP camera (wireless)
+                </div>
+                <div class="mode-features">
+                    <div class="feature-item">Remote gesture detection</div>
+                    <div class="feature-item">Wireless camera</div>
+                    <div class="feature-item">Same gesture controls</div>
+                    <div class="feature-item">Requires ESP32-CAM IP</div>
+                </div>
+                <button class="mode-button" id="esp32Btn">Connect ESP32-CAM</button>
             </div>
 
             <!-- Voice Control Card -->
@@ -266,5 +343,84 @@
             <p>💡 Powered by Neo AI Assistant | Smart Home Automation System</p>
         </footer>
     </div>
+
+    <!-- ESP32-CAM IP Input Modal -->
+    <div id="esp32Modal" class="modal">
+        <div class="modal-content">
+            <h3>🔗 Connect to ESP32-CAM</h3>
+            <p style="margin-bottom: 15px; color: #666;">Enter your ESP32-CAM IP address</p>
+            <input type="text" id="esp32Ip" placeholder="e.g., 192.168.1.100" value="192.168.1.100">
+            <p style="font-size: 0.8rem; color: #999; margin-top: 5px;">Stream URL: http://[IP]:81/stream</p>
+            <div>
+                <button class="modal-btn-confirm" id="confirmEsp32">Connect</button>
+                <button class="modal-btn-cancel" id="cancelEsp32">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ESP32-CAM modal handling
+        const esp32Card = document.getElementById('esp32Card');
+        const esp32Btn = document.getElementById('esp32Btn');
+        const modal = document.getElementById('esp32Modal');
+        const confirmBtn = document.getElementById('confirmEsp32');
+        const cancelBtn = document.getElementById('cancelEsp32');
+        const esp32IpInput = document.getElementById('esp32Ip');
+
+        function openModal() {
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        function connectESP32() {
+            let ip = esp32IpInput.value.trim();
+            if (!ip) {
+                alert('Please enter ESP32-CAM IP address');
+                return;
+            }
+            // Remove http:// if user added it
+            ip = ip.replace('http://', '').replace('/stream', '');
+            const streamUrl = `http://${ip}:81/stream`;
+            // Store in sessionStorage for the ESP32 page to use
+            sessionStorage.setItem('esp32_stream_url', streamUrl);
+            sessionStorage.setItem('esp32_ip', ip);
+            // Navigate to ESP32 gesture control page
+            window.location.href = '/gesture-esp32';
+        }
+
+        esp32Card.addEventListener('click', (e) => {
+            if (e.target === esp32Btn || esp32Btn.contains(e.target)) {
+                e.stopPropagation();
+                openModal();
+            } else {
+                openModal();
+            }
+        });
+
+        esp32Btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openModal();
+        });
+
+        confirmBtn.addEventListener('click', connectESP32);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Enter key in input field
+        esp32IpInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                connectESP32();
+            }
+        });
+    </script>
 </body>
 </html>

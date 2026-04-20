@@ -1,0 +1,257 @@
+<style>
+  .top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .metric-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:20px; }
+  .metric { background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:14px 16px; }
+  .metric-label { font-size:12px; color:var(--color-text-secondary); margin-bottom:6px; }
+  .metric-val { font-size:26px; font-weight:500; color:var(--color-text-primary); line-height:1; }
+  .metric-unit { font-size:13px; color:var(--color-text-secondary); }
+  .metric-tag { font-size:11px; margin-top:6px; display:inline-block; padding:2px 8px; border-radius:var(--border-radius-md); }
+  .tag-ok { background:var(--color-background-success); color:var(--color-text-success); }
+  .tag-warn { background:var(--color-background-warning); color:var(--color-text-warning); }
+  .tag-hot { background:var(--color-background-danger); color:var(--color-text-danger); }
+  .card { background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:16px; margin-bottom:14px; }
+  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .card-title { font-size:14px; font-weight:500; color:var(--color-text-primary); }
+  .chart-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:14px; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .dot-live { background:#3a9e5f; animation:blink 2s infinite; }
+  .dot-off { background:#888; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+  .legend-row { display:flex; gap:14px; font-size:12px; color:var(--color-text-secondary); flex-wrap:wrap; }
+  .legend-swatch { width:10px; height:10px; border-radius:2px; display:inline-block; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; font-size:11px; font-weight:500; color:var(--color-text-secondary); padding:6px 8px; border-bottom:0.5px solid var(--color-border-tertiary); }
+  td { padding:7px 8px; border-bottom:0.5px solid var(--color-border-tertiary); color:var(--color-text-primary); }
+  tr:last-child td { border-bottom:none; }
+  .ip-row { display:flex; gap:8px; align-items:center; margin-bottom:20px; }
+  .ip-row input { flex:1; font-size:13px; font-family:var(--font-mono); }
+  .ip-row button { font-size:13px; padding:0 14px; }
+  .alert-row { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .alert-pill { font-size:12px; padding:4px 12px; border-radius:var(--border-radius-md); display:flex; align-items:center; gap:6px; border:0.5px solid var(--color-border-tertiary); }
+</style>
+
+<div style="padding:1rem 0;">
+  <div class="top-bar">
+    <div>
+      <p style="font-size:18px;font-weight:500;margin:0;">Home environment monitor</p>
+      <p style="font-size:12px;color:var(--color-text-secondary);margin:0;">NodeMCU + DHT11 — live dashboard</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--color-text-secondary);">
+      <span id="dot" class="dot dot-off"></span>
+      <span id="connLabel">Disconnected</span>
+      <span>|</span>
+      <span id="lastUpdate">--</span>
+    </div>
+  </div>
+
+  <div class="ip-row">
+    <input id="ipIn" type="text" value="192.168.1.7" placeholder="NodeMCU IP address — e.g. 192.168.1.7" />
+    <button id="connBtn" onclick="toggleConn()">Connect</button>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+    <button onclick="clearData()">Clear data</button>
+</div>
+  </div>
+
+  <div id="alertRow" class="alert-row">
+    <div id="alertTemp" class="alert-pill" style="opacity:.4;">
+      <span class="dot" style="background:#e24b4a;"></span> Temp alert
+    </div>
+    <div id="alertHum" class="alert-pill" style="opacity:.4;">
+      <span class="dot" style="background:#ba7517;"></span> Humidity alert
+    </div>
+    <div id="alertConn" class="alert-pill" style="opacity:.4;">
+      <span class="dot" style="background:#888;"></span> Connection lost
+    </div>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">Temperature</div>
+      <div><span id="mTemp" class="metric-val">--</span> <span class="metric-unit">°C</span></div>
+      <span id="mTempTag" class="metric-tag tag-ok">—</span>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Humidity</div>
+      <div><span id="mHum" class="metric-val">--</span> <span class="metric-unit">%</span></div>
+      <span id="mHumTag" class="metric-tag tag-ok">—</span>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Heat index</div>
+      <div><span id="mHI" class="metric-val">--</span> <span class="metric-unit">°C</span></div>
+      <span id="mHITag" class="metric-tag tag-ok">—</span>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Total readings</div>
+      <div><span id="mCount" class="metric-val">0</span></div>
+      <span id="mCountTag" class="metric-tag tag-ok">Session</span>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Temperature over time</span>
+        <div class="legend-row"><span><span class="legend-swatch" style="background:#d85a30;"></span> °C</span></div>
+      </div>
+      <div style="height:180px;"><canvas id="chartTemp"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Humidity over time</span>
+        <div class="legend-row"><span><span class="legend-swatch" style="background:#185fa5;"></span> %</span></div>
+      </div>
+      <div style="height:180px;"><canvas id="chartHum"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Temperature vs humidity</span>
+      <div class="legend-row">
+        <span><span class="legend-swatch" style="background:#d85a30;"></span> Temp</span>
+        <span><span class="legend-swatch" style="background:#185fa5;"></span> Humidity</span>
+      </div>
+    </div>
+    <!-- <div style="height:160px;"><canvas id="chartBoth"></canvas></div> -->
+     <div style="height:260px;"><canvas id="chartBoth"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Recent readings log</span>
+      <span style="font-size:12px;color:var(--color-text-secondary);">Last 10 entries</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Time</th><th>Temp</th><th>Humidity</th><th>Heat Index</th><th>Status</th></tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="6" style="text-align:center;">No data yet — connect your NodeMCU</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+
+function clearData(){
+  labels.length=0; tData.length=0; hData.length=0; tableRows=[]; count=0;
+  cTemp.update(); cHum.update(); cBoth.update();
+  document.getElementById('tableBody').innerHTML='';
+}
+
+
+const MAX = 20, TABLE_MAX = 10;
+
+let labels = [], tData = [], hData = [], tableRows = [];
+let count = 0, connected = false, timer = null, missed = 0;
+
+const $ = id => document.getElementById(id);
+
+const chartOptions = (unit, color) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { font: { size: 10 }, color: '#888' } },
+    y: { ticks: { font: { size: 10 }, color } }
+  }
+});
+
+const cTemp = new Chart($('chartTemp'), {
+  type: 'line',
+  data: { labels, datasets: [{ data: tData, borderColor: '#d85a30', tension: 0.4 }] },
+  options: chartOptions('°C', '#d85a30')
+});
+
+const cHum = new Chart($('chartHum'), {
+  type: 'line',
+  data: { labels, datasets: [{ data: hData, borderColor: '#185fa5', tension: 0.4 }] },
+  options: chartOptions('%', '#185fa5')
+});
+
+const cBoth = new Chart($('chartBoth'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      { data: tData, borderColor: '#d85a30', yAxisID: 'y' },
+      { data: hData, borderColor: '#185fa5', yAxisID: 'y1' }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { position: 'left' },
+      y1: { position: 'right' }
+    }
+  }
+});
+
+const heatIndex = (t, h) =>
+  Math.round((-8.78469 + 1.61139*t + 2.33855*h - 0.14611*t*h) * 10) / 10;
+
+function pushData(t, h) {
+  count++;
+  const ts = new Date().toLocaleTimeString();
+  const hi = heatIndex(t, h);
+
+  if (labels.length >= MAX) {
+    labels.shift(); tData.shift(); hData.shift();
+  }
+
+  labels.push(ts);
+  tData.push(t);
+  hData.push(h);
+
+  cTemp.update(); cHum.update(); cBoth.update();
+
+  $('mTemp').textContent = t;
+  $('mHum').textContent = h;
+  $('mHI').textContent = hi;
+  $('mCount').textContent = count;
+
+  tableRows.unshift({ ts, t, h, hi });
+  if (tableRows.length > TABLE_MAX) tableRows.pop();
+
+  $('tableBody').innerHTML = tableRows.map((r, i) =>
+    `<tr><td>${count - i}</td><td>${r.ts}</td><td>${r.t}</td><td>${r.h}</td><td>${r.hi}</td><td>OK</td></tr>`
+  ).join('');
+}
+
+async function fetchOnce() {
+  try {
+    const res = await fetch(`http://${$('ipIn').value}/data`);
+    const data = await res.json();
+    console.log(data)
+    pushData(data.temp, data.humidity);
+    missed = 0;
+  } catch {
+    if (++missed >= 2) toggleConn(false);
+  }
+}
+
+function toggleConn(force) {
+  connected = force ?? !connected;
+  $('connBtn').textContent = connected ? 'Disconnect' : 'Connect';
+
+  if (connected) {
+    fetchOnce();
+    timer = setInterval(fetchOnce, 5000);
+  } else {
+    clearInterval(timer);
+  }
+}
+
+function clearData() {
+  labels.length = tData.length = hData.length = tableRows.length = 0;
+  count = 0;
+  cTemp.update(); cHum.update(); cBoth.update();
+  $('tableBody').innerHTML = '';
+}
+</script>

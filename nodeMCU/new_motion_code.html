@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Motion Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .ip-config {
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .ip-config input {
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: none;
+            font-family: monospace;
+            font-size: 14px;
+            width: 160px;
+            text-align: center;
+        }
+
+        .ip-config button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .ip-config button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .motion-card {
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+
+        .status-icon {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .no-motion .status-icon {
+            background: #2ecc71;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);
+        }
+
+        .motion-detected .status-icon {
+            background: #e74c3c;
+            box-shadow: 0 0 50px rgba(231, 76, 60, 0.6);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 20px rgba(231, 76, 60, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+
+        .status-icon svg {
+            width: 80px;
+            height: 80px;
+            fill: white;
+        }
+
+        .status-text {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .no-motion .status-text {
+            color: #2ecc71;
+        }
+
+        .motion-detected .status-text {
+            color: #e74c3c;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .info-panel {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .info-value {
+            color: #333;
+            font-family: monospace;
+            font-size: 16px;
+        }
+
+        .timestamp {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .alert-banner {
+            background: #e74c3c;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .alert-banner.show {
+            transform: translateY(0);
+        }
+
+        .connection-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .connection-online {
+            background: #2ecc71;
+            box-shadow: 0 0 5px #2ecc71;
+        }
+
+        .connection-offline {
+            background: #e74c3c;
+            box-shadow: 0 0 5px #e74c3c;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        @media (max-width: 768px) {
+            .status-text {
+                font-size: 28px;
+            }
+            
+            .status-icon {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .status-icon svg {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .container {
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Motion Detection System</h1>
+            <p>Real-time motion monitoring</p>
+            <div class="ip-config">
+                <input type="text" id="ipAddress" value="192.168.1.8" placeholder="192.168.1.8">
+                <button onclick="updateApiEndpoint()">Set IP</button>
+                <span id="connStatus" class="connection-status connection-offline"></span>
+            </div>
+        </div>
+
+        <div id="alertBanner" class="alert-banner">
+            ⚠️ MOTION DETECTED! ⚠️
+        </div>
+
+        <div class="motion-card" id="motionCard">
+            <div class="status-icon" id="statusIcon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+            </div>
+            <div class="status-text" id="statusText">NO MOTION</div>
+            <div class="subtitle" id="subtitle">Area is secure</div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-row">
+                <span class="info-label">📊 Current Status:</span>
+                <span class="info-value" id="currentStatus">Safe</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">⏰ Last Detection:</span>
+                <span class="info-value" id="lastDetection">Never</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">📈 Detections Today:</span>
+                <span class="info-value" id="detectionCount">0</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">🕐 Last API Call:</span>
+                <span class="info-value" id="lastUpdated">--:--:--</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">🔌 API Response:</span>
+                <span class="info-value" id="apiResponse">Waiting...</span>
+            </div>
+        </div>
+
+        <div class="timestamp">
+            <button onclick="forceRefresh()">🔄 Force Refresh</button>
+            <button onclick="resetCounter()" style="margin-left: 10px; background: #95a5a6;">🔄 Reset Counter</button>
+            <div style="margin-top: 10px; font-size: 12px;">
+                System monitoring in real-time | Auto-refresh every 2 seconds
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let detectionCount = 0;
+        let isMotionDetected = false;
+        let lastDetectionTime = null;
+        let audioContext = null;
+        let currentIp = '192.168.1.8';
+        let isOnline = false;
+        let refreshInterval = null;
+        
+        // Function to update API endpoint
+        function updateApiEndpoint() {
+            const newIp = document.getElementById('ipAddress').value.trim();
+            if (newIp) {
+                currentIp = newIp;
+                console.log('API endpoint updated to:', `http://${currentIp}/motion`);
+                document.getElementById('apiResponse').innerHTML = 'Updating...';
+                // Force immediate refresh
+                setTimeout(() => fetchMotionStatus(), 100);
+            }
+        }
+        
+        // Function to play alert sound
+        function playAlertSound() {
+            try {
+                if (audioContext === null) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // Resume if suspended (browser policy)
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                gainNode.gain.value = 0.3;
+                
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
+                oscillator.stop(audioContext.currentTime + 1);
+            } catch(e) {
+                console.log('Audio not supported:', e);
+            }
+        }
+        
+        // Function to update UI based on motion status
+        function updateMotionUI(motionDetected, lastMotionText = '') {
+            const motionCard = document.getElementById('motionCard');
+            const statusText = document.getElementById('statusText');
+            const subtitle = document.getElementById('subtitle');
+            const currentStatusSpan = document.getElementById('currentStatus');
+            const alertBanner = document.getElementById('alertBanner');
+            
+            if (motionDetected) {
+                // Motion detected state
+                motionCard.className = 'motion-card motion-detected';
+                statusText.innerHTML = '⚠️ MOTION DETECTED! ⚠️';
+                subtitle.innerHTML = `Movement detected! ${lastMotionText}`;
+                currentStatusSpan.innerHTML = '🔴 Motion Detected';
+                currentStatusSpan.style.color = '#e74c3c';
+                currentStatusSpan.style.fontWeight = 'bold';
+                alertBanner.classList.add('show');
+                
+                // Play sound (only once per detection)
+                if (!isMotionDetected) {
+                    playAlertSound();
+                }
+                
+                // Flash page title
+                let originalTitle = document.title;
+                let flashInterval = setInterval(() => {
+                    document.title = document.title === originalTitle ? '⚠️ MOTION! ⚠️' : originalTitle;
+                }, 500);
+                
+                setTimeout(() => {
+                    clearInterval(flashInterval);
+                    document.title = originalTitle;
+                }, 3000);
+                
+            } else {
+                // No motion state
+                motionCard.className = 'motion-card no-motion';
+                statusText.innerHTML = '✓ NO MOTION';
+                subtitle.innerHTML = 'Area is secure';
+                currentStatusSpan.innerHTML = '🟢 Safe';
+                currentStatusSpan.style.color = '#2ecc71';
+                currentStatusSpan.style.fontWeight = 'normal';
+                alertBanner.classList.remove('show');
+            }
+        }
+        
+        // Function to update info panel
+        function updateInfoPanel() {
+            const lastDetectionElem = document.getElementById('lastDetection');
+            const detectionCountElem = document.getElementById('detectionCount');
+            
+            if (lastDetectionTime) {
+                lastDetectionElem.innerHTML = lastDetectionTime.toLocaleTimeString();
+            }
+            
+            detectionCountElem.innerHTML = detectionCount;
+        }
+        
+        // Function to reset counter
+        function resetCounter() {
+            detectionCount = 0;
+            updateInfoPanel();
+            
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Reset!';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+            }, 1000);
+        }
+        
+        // Force manual refresh
+        function forceRefresh() {
+            fetchMotionStatus();
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '🔄 Refreshing...';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+            }, 1000);
+        }
+        
+        // Real API integration with your NodeMCU
+        async function fetchMotionStatus() {
+            const url = `http://${currentIp}/motion`;
+            const lastUpdatedSpan = document.getElementById('lastUpdated');
+            const apiResponseSpan = document.getElementById('apiResponse');
+            const connStatusSpan = document.getElementById('connStatus');
+            const now = new Date();
+            
+            lastUpdatedSpan.innerHTML = now.toLocaleTimeString();
+            
+            try {
+                // Fetch with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                
+                const response = await fetch(url, { 
+                    method: 'GET',
+                    signal: controller.signal,
+                    mode: 'cors',
+                    cache: 'no-store'
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Update connection status
+                isOnline = true;
+                connStatusSpan.className = 'connection-status connection-online';
+                apiResponseSpan.innerHTML = `✅ Motion: ${data.motionDetected}, Last: ${data.lastMotion}`;
+                apiResponseSpan.style.color = '#2ecc71';
+                
+                // Check motion detection from API
+                const motionDetected = data.motionDetected === true;
+                const lastMotionText = data.lastMotion || 'unknown';
+                
+                if (motionDetected && !isMotionDetected) {
+                    // New motion detected
+                    isMotionDetected = true;
+                    lastDetectionTime = new Date();
+                    detectionCount++;
+                    updateMotionUI(true, lastMotionText);
+                    updateInfoPanel();
+                } else if (!motionDetected && isMotionDetected) {
+                    // Motion cleared
+                    isMotionDetected = false;
+                    updateMotionUI(false);
+                    updateInfoPanel();
+                } else if (motionDetected && isMotionDetected) {
+                    // Still in motion, just update UI in case
+                    updateMotionUI(true, lastMotionText);
+                }
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                isOnline = false;
+                connStatusSpan.className = 'connection-status connection-offline';
+                
+                let errorMsg = 'Connection failed';
+                if (error.name === 'AbortError') {
+                    errorMsg = 'Timeout - check IP';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMsg = 'Cannot reach ' + currentIp;
+                } else {
+                    errorMsg = error.message;
+                }
+                
+                apiResponseSpan.innerHTML = `⚠️ ${errorMsg}`;
+                apiResponseSpan.style.color = '#e74c3c';
+                
+                // Don't change motion state on connection error, just show offline
+                document.getElementById('subtitle').innerHTML = `⚠️ API offline - check connection`;
+            }
+        }
+        
+        // Initialize the page
+        function init() {
+            updateMotionUI(false);
+            updateInfoPanel();
+            
+            // Load saved IP if any
+            const savedIp = localStorage.getItem('motionApiIp');
+            if (savedIp) {
+                currentIp = savedIp;
+                document.getElementById('ipAddress').value = savedIp;
+            }
+            
+            // Start polling the API every 2 seconds
+            fetchMotionStatus(); // immediate first fetch
+            refreshInterval = setInterval(fetchMotionStatus, 2000);
+        }
+        
+        // Save IP to localStorage when changed
+        function saveIpToStorage() {
+            localStorage.setItem('motionApiIp', currentIp);
+        }
+        
+        // Override updateApiEndpoint to save IP
+        const originalUpdateApi = updateApiEndpoint;
+        window.updateApiEndpoint = function() {
+            originalUpdateApi();
+            saveIpToStorage();
+        };
+        
+        // Start the application
+        init();
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+        
+        // Keyboard shortcut for testing (press 'M' key) - for demo only
+        document.addEventListener('keydown', function(e) {
+            if ((e.key === 'm' || e.key === 'M') && !isOnline) {
+                // Simulate motion for testing when offline
+                if (!isMotionDetected) {
+                    isMotionDetected = true;
+                    lastDetectionTime = new Date();
+                    detectionCount++;
+                    updateMotionUI(true, 'test mode');
+                    updateInfoPanel();
+                    setTimeout(() => {
+                        if (isMotionDetected) {
+                            isMotionDetected = false;
+                            updateMotionUI(false);
+                        }
+                    }, 3000);
+                }
+            }
+        });
+        
+        console.log('Motion Detection UI Loaded - Connected to:', `http://${currentIp}/motion`);
+    </script>
+</body>
+</html>
